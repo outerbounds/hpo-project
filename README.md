@@ -1,5 +1,9 @@
 ## Hyperparameter Optimization Project
 
+<!-- <a href="..."> -->
+<img style="display: block; float: left; max-width: 100%; height: auto; margin: auto; float: none!important;" src="static/system.png"/>
+<!-- </a> -->
+
 This repository shows you how to run a hyperparameter optimization (HPO) system as an Outerbounds project.
 This `README.md` will explain why you'd want to connect these concepts, and will show you how to launch HPO jobs for:
 - classical ML models
@@ -8,22 +12,30 @@ This `README.md` will explain why you'd want to connect these concepts, and will
 
 If you have never deployed an Outerbounds project, please read [the documentation page](/outerbounds/project-setup/) before continuing.
 
-### Local/workstation dependencies
+## Quick start
+
+Change the `platform` in [`obproject.toml`](./obproject.toml) to match your Outerbounds deployment. 
 
 [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-From your laptop or Outerbounds workstation run:
 ```bash
 uv init
 uv add outerbounds optuna numpy pandas "psycopg[binary]>=3.2.0" scikit-learn torch torchvision
 ```
 
-Configure Outerbounds token. Ask in Slack if not sure.
+Ensure you've run your `outerbounds configure ...` command.
+Then, run flows!
 
-### Optuna integration
-This system is an integration between [Optuna](https://optuna.org/), a feature-rich and open-source hyperparameter optimziation framework, and Outerbounds. Using it leverages functionality built-into your Outerbounds deployment to run a persistent relational database that tasks and applications can communicate with. The Optuna dashboard is run as an Outerbounds app, enabling sophisticated analysis of hyperparameter tuning runs.  
+```bash
+cd flows/tree
+uv run python flow.py --environment=fast-bakery run --with kubernetes
+```
 
-### How to use this repository
+## How to customize this repository for your use cases
+
+## Advanced
+
+### Detailed set up
 
 #### Deploy the Optuna dashboard application
 
@@ -36,8 +48,31 @@ cd deployments/optuna-dashboard
 uv run outerbounds app deploy --config-file config.yml
 ```
 
-#### Run a workflow
+#### Local/workstation dependencies
 
+[Install uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+From your laptop or Outerbounds workstation run:
+```bash
+uv init
+uv add outerbounds optuna numpy pandas "psycopg[binary]>=3.2.0" scikit-learn torch torchvision
+```
+
+Configure Outerbounds token. Ask in Slack if not sure.
+
+#### Pick a sub-project
+```bash
+cd flows/tree
+# cd flows/nn
+```
+
+#### Setting configs
+Before running or deploying the workflows, investigate the relationship between the flow and the `config.json` file.
+
+As long as you haven't changed anything when deploying the application hosting the Optuna dashboard, you do not need to change anything in that file, 
+but it is useful to be familiar with these contents and the way the configuration files are interacting with Metaflow code. 
+
+#### Run flows
 There are two demos implemented within this project base in `flows/tree-model` and `flows/nn`.
 Each workflow template defines:
 - a `flow.py` containing a `FlowSpec`, 
@@ -52,29 +87,22 @@ For the rest of this section, we'll use the `flows/nn` template, as everything e
 cd flows/nn
 ```
 
-##### Setting configs
-Before running or deploying the workflows, investigate the relationship between the flow and the `config.json` file.
-
-Based on the compute pools available in your Outerbounds deployment, set the `compute_pool` variable. 
-If you are new to compute pools, please visit the documentation or consult your Outerbounds admins/Slack for guidance.
-
-As long as you haven't changed anything when deploying the application hosting the Optuna dashboard, you do not need to change anything besides the `compute_pool` in that file, 
-but it is useful to be familiar with these contents and the way the configuration files are interacting with Metaflow code. 
-
-##### Regular Metaflow usage
-To run the flow directly (e.g., standard Metaflow user experience):
-
+#### Use Metaflow directly
 ```bash
-python flow.py --environment=fast-bakery run --with kubernetes
-python flow.py --environment=fast-bakery argo-workflows create/trigger
+uv run python flow.py --environment=fast-bakery run --with kubernetes
+uv run python flow.py --environment=fast-bakery argo-workflows create/trigger
 ```
 
-##### Using the HPO client
-These examples also include a convenience wrapper around the workflows in the `hpo_client.py`. 
-The purpose is to make the flows easier to use and the abstractions more in line with typical HPO interfaces seen in the wild. 
+#### Use `hpo_client`
+The examples also include a convenience wrapper around the workflows in the `hpo_client.py`. 
+You can use this for:
+- running HPO jobs from notebooks, CLI, or other Metaflow flows, or
+- as an example for creating your own experiment entrypoint abstractions.
 
 ```bash
-cd flows/nn
+uv run python hpo_client.py -m 1 # blocking
+uv run python hpo_client.py -m 2 # async
+uv run python hpo_client.py -m 3 # trigger deployed flow
 ```
 
 There are three client modes:
@@ -83,9 +111,10 @@ There are three client modes:
 3. Trigger - `python hpo_client.py -m 3` 
     - Trigger option also works with a parameter `--namespace/-n`, which determines the namespace within which this code path checks for already-deployed flows.
 
-### Optuna 101 
+### Optuna 101
+This system is an integration between [Optuna](https://optuna.org/), a feature-rich and open-source hyperparameter optimziation framework, and Outerbounds. Using it leverages functionality built-into your Outerbounds deployment to run a persistent relational database that tasks and applications can communicate with. The Optuna dashboard is run as an Outerbounds app, enabling sophisticated analysis of hyperparameter tuning runs.  
 
-This implementation wraps the standard Optuna interface, aiming to balance two goals:
+The implementation wraps the standard Optuna interface, aiming to balance two goals:
 1. Provide full expressiveness and compatability with open-source Optuna features.
 2. Provide an opinionated and streamlined interface for launching HPO studies as Metaflow flows. 
 
