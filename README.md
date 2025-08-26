@@ -1,5 +1,5 @@
 ## Hyperparameter Optimization Project
-<img style="display: block; max-width: 100%; height: auto; margin: auto;" src="static/system.png"/>
+<img style="display: block; max-width: 100%; height: auto; margin: auto;" alt="system" src="https://github.com/user-attachments/assets/f9ca6892-879c-46b1-9696-bf691530de1c" />
 
 This repository shows you how to run a hyperparameter optimization (HPO) system as an Outerbounds project.
 This `README.md` will explain why you'd want to connect these concepts, and will show you how to launch HPO jobs for:
