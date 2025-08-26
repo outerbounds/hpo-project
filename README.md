@@ -1,8 +1,5 @@
 ## Hyperparameter Optimization Project
-
-<!-- <a href="..."> -->
-<img style="display: block; float: left; max-width: 100%; height: auto; margin: auto; float: none!important;" src="static/system.png"/>
-<!-- </a> -->
+<img style="display: block; max-width: 100%; height: auto; margin: auto;" src="static/system.png"/>
 
 This repository shows you how to run a hyperparameter optimization (HPO) system as an Outerbounds project.
 This `README.md` will explain why you'd want to connect these concepts, and will show you how to launch HPO jobs for:
@@ -10,7 +7,7 @@ This `README.md` will explain why you'd want to connect these concepts, and will
 - deep learning models
 - end-to-end system tuning
 
-If you have never deployed an Outerbounds project, please read [the documentation page](/outerbounds/project-setup/) before continuing.
+If you have never deployed an Outerbounds project, please read the [Outerbounds documentation](https://docs.outerbounds.com/) before continuing.
 
 ## Quick start
 
@@ -31,7 +28,29 @@ cd flows/tree
 uv run python flow.py --environment=fast-bakery run --with kubernetes
 ```
 
+> For more information about the containerization technology used in this project, see [Fast Bakery: Automatic Containerization](https://outerbounds.com/blog/containerize-with-fast-bakery).
+
 ## How to customize this repository for your use cases
+
+### Make a new directory under `/flows`
+To begin, copy the structure in `/flows/nn` or `/flows/tree`:
+- `config.json` contains system and hyperparameter config options.
+- `flow.py` defines the workflow structure. This should change little across use cases.
+- `objective_fn.py` this is the key piece of the puzzle for a new use case. See examples at https://github.com/optuna/optuna-examples/tree/main.
+- `utils.py` contains small project-specific helpers.
+- `interactive.ipynb` is a starter notebook for running and analyzing hyperparameter tuning runs in a REPL.
+- Symlink to `obproject.toml` at the root of the repository. 
+
+If desired, you can directly modify one of these sub-directories.
+
+### Define and evolve your own objective function
+
+The key aspect of customization is about defining the objective function. 
+Check out the examples and reach out for assistance if you do not know how to parameterize your task as a tunable optimization problem. 
+From there, determine the dependencies needed for running the objective function
+and update the `config.json` values accordingly, most notable the Python packages 
+section which `flow.py` will use when building consistent environments across 
+compute backends.
 
 ## Advanced
 
@@ -73,7 +92,7 @@ As long as you haven't changed anything when deploying the application hosting t
 but it is useful to be familiar with these contents and the way the configuration files are interacting with Metaflow code. 
 
 #### Run flows
-There are two demos implemented within this project base in `flows/tree-model` and `flows/nn`.
+There are two demos implemented within this project base in `flows/tree` and `flows/nn`.
 Each workflow template defines:
 - a `flow.py` containing a `FlowSpec`, 
 - a single `config.json` to set system variables and hyperparameter configurations,
@@ -81,7 +100,7 @@ Each workflow template defines:
 - notebooks showing how to run and analyze results of hyperparameter tuning runs, and
 - the templates show how to define a modular, fully customizable objective function.
 
-For the rest of this section, we'll use the `flows/nn` template, as everything else is the sames as for `flows/tree-model`.
+For the rest of this section, we'll use the `flows/nn` template, as everything else is the same as for `flows/tree`.
 
 ```bash
 cd flows/nn
@@ -112,10 +131,10 @@ There are three client modes:
     - Trigger option also works with a parameter `--namespace/-n`, which determines the namespace within which this code path checks for already-deployed flows.
 
 ### Optuna 101
-This system is an integration between [Optuna](https://optuna.org/), a feature-rich and open-source hyperparameter optimziation framework, and Outerbounds. Using it leverages functionality built-into your Outerbounds deployment to run a persistent relational database that tasks and applications can communicate with. The Optuna dashboard is run as an Outerbounds app, enabling sophisticated analysis of hyperparameter tuning runs.  
+This system is an integration between [Optuna](https://optuna.org/), a feature-rich and open-source hyperparameter optimization framework, and Outerbounds. Using it leverages functionality built-into your Outerbounds deployment to run a persistent relational database that tasks and applications can communicate with. The Optuna dashboard is run as an Outerbounds app, enabling sophisticated analysis of hyperparameter tuning runs.  
 
 The implementation wraps the standard Optuna interface, aiming to balance two goals:
-1. Provide full expressiveness and compatability with open-source Optuna features.
+1. Provide full expressiveness and compatibility with open-source Optuna features.
 2. Provide an opinionated and streamlined interface for launching HPO studies as Metaflow flows. 
 
 #### The objective function
@@ -138,7 +157,7 @@ The key task of the user who wishes to use the `from outerbounds.hpo import HPOR
 2. What data, model, and code does the objective function depend on?
 3. How many trials do you want to run per study?
 
-With answers to these questions, you'll be ready to adapt your objective functions as demonstrated in the example [`flows/`](./flows/) and [`notebooks/`](./notebooks/) and call the `HPORunner` interface to automate HPO workflows.
+With answers to these questions, you'll be ready to adapt your objective functions as demonstrated in the example [`flows/`](./flows/) and call the `HPORunner` interface to automate HPO workflows.
 
 #### Note on search spaces
 Notice that with Optuna, the user imperatively defines the hyperparameter space in how the `trial` object is used within the `objective` function.
@@ -157,7 +176,7 @@ study = optuna.create_study(sampler=optuna.samplers.RandomSampler())
 study.optimize(objective, n_trials=10)
 ```
 
-Sometimes it is desirable to early stop unpromising trials. The mechanism for doing this in Optuna is called as [`optuna.pruners`](https://optuna.readthedocs.io/en/stable/reference/pruners.html), which uses intermediate objective function state varaibles of previous trials to determine a boolean representing whether the trial should be pruned.
+Sometimes it is desirable to early stop unpromising trials. The mechanism for doing this in Optuna is called [`optuna.pruners`](https://optuna.readthedocs.io/en/stable/reference/pruners.html), which uses intermediate objective function state variables of previous trials to determine a boolean representing whether the trial should be pruned.
 
 #### Resuming studies
 To resume a study, simply pass in the name of the previous study. 
