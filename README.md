@@ -14,7 +14,8 @@ If you have never deployed an Outerbounds project, please read [the documentatio
 
 From your laptop or Outerbounds workstation run:
 ```bash
-uv sync
+uv init
+uv add outerbounds optuna numpy pandas "psycopg[binary]>=3.2.0" scikit-learn torch torchvision
 ```
 
 Configure Outerbounds token. Ask in Slack if not sure.
