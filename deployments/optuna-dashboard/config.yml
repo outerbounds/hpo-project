@@ -1,0 +1,19 @@
+name: hpo-dashboard
+port: 8088
+
+commands:
+  - gunicorn --workers 2 --bind 0.0.0.0:8088 main:app
+
+dependencies:
+  pypi:
+    optuna-dashboard: ""
+    psycopg2-binary: ""
+    gunicorn: ""
+    werkzeug: ""
+
+resources:
+  cpu: "2"
+  memory: "4Gi"
+  ephemeralStorage: "10Gi"
+
+persistence: postgres

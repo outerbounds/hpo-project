@@ -1,0 +1,17 @@
+[project]
+name = "hpo-project"
+version = "0.1.0"
+description = "See the obproject.toml next door! This toml is for local dev env on a laptop or Outerbounds workstation."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fvcore>=0.1.5.post20221221",
+    "numpy==2.3.2",
+    "optuna==4.5.0",
+    "outerbounds>=0.8.3",
+    "pandas==2.3.2",
+    "psycopg[binary]>=3.2.0",
+    "scikit-learn==1.7.1",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+]

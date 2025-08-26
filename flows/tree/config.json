@@ -1,0 +1,24 @@
+{
+    "compute_pool": "obp-main",
+    "n_trials": 3,
+    "trials_per_task": 1,
+
+    "direction": "maximize",
+    
+    "optuna_app_name": "hpo-dashboard",
+    "environment_builder": "fast-bakery",
+    "flow_file": "flow.py",
+    "objective_function_file": "objective_fn.py",
+
+    "environment": {
+        "python": "3.12",
+        "packages": {
+            "numpy": "2.3.2",
+            "optuna": "4.5.0",
+            "scikit-learn": "1.7.1",
+            "pandas": "2.3.2",
+            "psycopg2-binary": "2.9.10",
+            "torch": "2.5.1"
+        }
+    }
+}
