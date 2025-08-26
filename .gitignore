@@ -1,0 +1,12 @@
+__pycache__/
+
+# uv
+.venv/
+pyproject.toml
+uv.lock
+hello.py
+.python-version
+
+# project-specific
+flows/nn/__pycache__
+flows/tree/__pycache__
