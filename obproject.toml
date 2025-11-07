@@ -1,4 +1,4 @@
-platform = "dev-silverwing.outerbounds.xyz"
+platform = "dev-yellow.outerbounds.xyz"
 project = "hpo_system"
 title = "HPO system"
 description = "A hyperparameter tuning system for any model." 
