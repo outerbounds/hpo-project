@@ -109,7 +109,8 @@ cd flows/nn
 #### Use Metaflow directly
 ```bash
 uv run python flow.py --environment=fast-bakery run --with kubernetes
-uv run python flow.py --environment=fast-bakery argo-workflows create/trigger
+uv run python flow.py --environment=fast-bakery argo-workflows create
+uv run python flow.py --environment=fast-bakery argo-workflows trigger
 ```
 
 #### Use `hpo_client`
