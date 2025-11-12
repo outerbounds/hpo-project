@@ -25,6 +25,7 @@ steps:
       DEFAULT_CICD_USER="${PROJECT_NAME//_/-}-cicd"
       PLATFORM=$(yq .platform obproject.toml)
       CICD_USER=$(yq ".cicd_user // \"$DEFAULT_CICD_USER\"" obproject.toml)
+      CICD_USER=ob-project-empty-cicd
       PERIMETER="default"
       echo "🏗️ Deployment target:"
       echo "  Platform: $PLATFORM"
