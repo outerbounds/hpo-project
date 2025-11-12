@@ -1,8 +1,13 @@
 {
+<<<<<<< HEAD
     "compute_pool": "c5-2x-task",
     "max_parallelism": 3,
 
     "n_trials": 12,
+=======
+    "compute_pool": "obp-main",
+    "n_trials": 3,
+>>>>>>> e568fcf (resolve readme)
     "trials_per_task": 1,
 
     "direction": "maximize",
