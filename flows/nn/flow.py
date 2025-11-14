@@ -35,24 +35,31 @@ class NeuralNetHpoFlow(ProjectFlow):
         elif self.config.get("direction", None) == "minimize":
             return "minimize"
         elif isinstance(self.config.get("directions", None), list):
-            assert len(self.config.get("directions", None)) == 2, "Direction of multi-objective optimization direction list must be a list of two values."
+            assert (
+                len(self.config.get("directions", None)) == 2
+            ), "Direction of multi-objective optimization direction list must be a list of two values."
             return self.config.get("directions")
         else:
             docs_ref = "https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.StudyDirection.html#optuna.study.StudyDirection"
-            raise ValueError(f"Invalid direction: {self.config.get('direction', None)}. See {docs_ref} for more information.")
+            raise ValueError(
+                f"Invalid direction: {self.config.get('direction', None)}. See {docs_ref} for more information."
+            )
 
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def start(self):
         import optuna
         from utils import cache_mnist
 
         num_full_batches = self.n_trials // self.trials_per_task
-        remaining_trials = self.n_trials % self.trials_per_task        
+        remaining_trials = self.n_trials % self.trials_per_task
         self.batches = [self.trials_per_task] * num_full_batches
         if remaining_trials > 0:
             self.batches.append(remaining_trials)
-        
+
         override_study_name = (
             None
             if self.override_study_name == "" or self.override_study_name == "null"
@@ -86,7 +93,10 @@ class NeuralNetHpoFlow(ProjectFlow):
         self.next(self.run_trial, foreach="batches")
 
     @kubernetes(compute_pool=config.compute_pool)
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def run_trial(self):
         import optuna
@@ -103,7 +113,10 @@ class NeuralNetHpoFlow(ProjectFlow):
 
     @card(id="best_model")
     @kubernetes(compute_pool=config.compute_pool)
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def join(self, inputs):
         from utils import load_study
@@ -120,7 +133,10 @@ class NeuralNetHpoFlow(ProjectFlow):
         )
         self.next(self.end)
 
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def end(self):
         print("Flow completed")

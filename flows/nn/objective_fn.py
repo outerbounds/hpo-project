@@ -8,6 +8,7 @@ PyTorch and FashionMNIST. We optimize the neural network architecture as well as
 configuration. As it is too time consuming to use the whole FashionMNIST dataset,
 we here use a small subset of it.
 """
+
 import optuna
 from optuna.trial import TrialState
 import torch
@@ -50,7 +51,7 @@ def define_model(trial):
 def objective(trial):
     import time
 
-    t0 = time.time() 
+    t0 = time.time()
 
     model = define_model(trial).to(DEVICE)
     optimizer_name = trial.suggest_categorical("optimizer", ["Adam", "RMSprop", "SGD"])
@@ -100,10 +101,7 @@ def objective(trial):
         # if trial.should_prune():
         #     raise optuna.exceptions.TrialPruned()
 
-    return (
-        time.time() - t0, # cost
-        accuracy          # profit
-    )
+    return (time.time() - t0, accuracy)  # cost  # profit
 
 
 if __name__ == "__main__":

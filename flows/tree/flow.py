@@ -35,13 +35,22 @@ class TreeModelHpoFlow(ProjectFlow):
         elif self.config.get("direction", None) == "minimize":
             return "minimize"
         elif isinstance(self.config.get("directions", None), list):
-            assert len(self.config.get("directions", ["maximize", "minimize"])) == 2, "Direction of multi-objective optimization must be a list of max two values."
+            assert (
+                len(self.config.get("directions", ["maximize", "minimize"])) == 2
+            ), "Direction of multi-objective optimization must be a list of max two values."
             return self.config.get("directions")
         else:
-            docs_ref = "https://outerbounds.github.io/metaflow-optuna/api/config/#direction"
-            raise ValueError(f"Invalid direction: {self.config.get('direction', 'maximize')}. See {docs_ref} for more information.")
+            docs_ref = (
+                "https://outerbounds.github.io/metaflow-optuna/api/config/#direction"
+            )
+            raise ValueError(
+                f"Invalid direction: {self.config.get('direction', 'maximize')}. See {docs_ref} for more information."
+            )
 
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def start(self):
         import optuna
@@ -73,7 +82,10 @@ class TreeModelHpoFlow(ProjectFlow):
         self.next(self.run_trial, foreach="batches")
 
     @kubernetes(compute_pool=config.compute_pool)
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def run_trial(self):
         import optuna
@@ -91,7 +103,10 @@ class TreeModelHpoFlow(ProjectFlow):
 
     @card(id="best_model")
     @kubernetes(compute_pool=config.compute_pool)
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def join(self, inputs):
         from utils import load_study
@@ -105,7 +120,10 @@ class TreeModelHpoFlow(ProjectFlow):
         )
         self.next(self.end)
 
-    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @pypi(
+        python=config.environment.get("python"),
+        packages=config.environment.get("packages"),
+    )
     @step
     def end(self):
         print("Flow completed")
