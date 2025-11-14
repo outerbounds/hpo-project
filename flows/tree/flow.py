@@ -90,9 +90,6 @@ class TreeModelHpoFlow(ProjectFlow):
         from utils import load_objective_function
 
         self.objective = load_objective_function(self.objective_function_file)
-
-        # Each task runs a batch of trials, may be just 1 for cleanest (trial, model, task) accounting.
-        # TODO: Refactor as conditionals/looping DAGs lands. Revisit this.
         study = optuna.create_study(**self.study_kwargs)
         study.optimize(self.objective, n_trials=1)
         self.trial_result = {"completed": True}
