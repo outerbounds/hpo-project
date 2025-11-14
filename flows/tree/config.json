@@ -1,5 +1,5 @@
 {
-    "compute_pool": "obp-main-1-33",
+    "compute_pool": "c5-2x-task",
     "max_parallelism": 3,
 
     "n_trials": 12,
