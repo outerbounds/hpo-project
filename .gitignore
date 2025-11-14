@@ -8,5 +8,6 @@ hello.py
 .python-version
 
 # project-specific
+.ob_apps
 flows/nn/__pycache__
 flows/tree/__pycache__

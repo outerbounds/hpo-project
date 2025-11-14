@@ -28,15 +28,15 @@ cd flows/tree
 uv run python flow.py --environment=fast-bakery run --with kubernetes
 ```
 
-> For more information about the containerization technology used in this project, see [Fast Bakery: Automatic Containerization](https://outerbounds.com/blog/containerize-with-fast-bakery).
+> For more information about the `fast-bakery` technology, see [Fast Bakery: Automatic Containerization](https://outerbounds.com/blog/containerize-with-fast-bakery).
 
 ## How to customize this repository for your use cases
 
 ### Make a new directory under `/flows`
-To begin, copy the structure in `/flows/nn` or `/flows/tree`:
+To begin, copy the structure in `/flows/nn` or `/flows/tree`, which represent sample use cases:
 - `config.json` contains system and hyperparameter config options.
 - `flow.py` defines the workflow structure. This should change little across use cases.
-- `objective_fn.py` this is the key piece of the puzzle for a new use case. See examples at https://github.com/optuna/optuna-examples/tree/main.
+- `objective_fn.py` this is the key piece of the puzzle - the function that converts samples from hyperparameter space into the measures the system optimizes - for a new use case. See examples at https://github.com/optuna/optuna-examples/tree/main.
 - `utils.py` contains small project-specific helpers.
 - `interactive.ipynb` is a starter notebook for running and analyzing hyperparameter tuning runs in a REPL.
 - Symlink to `obproject.toml` at the root of the repository. 

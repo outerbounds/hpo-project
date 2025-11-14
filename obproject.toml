@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 platform = "dev-yellow.outerbounds.xyz"
 project = "hpo_system"
 title = "HPO system"
 description = "A hyperparameter tuning system for any model." 
+=======
+platform = "dev-azure.outerbounds.xyz"
+project = "hpo_system"
+title = "HPO system"
+description = "A hyperparameter tuning system for any model." 
+>>>>>>> e568fcf (resolve readme)

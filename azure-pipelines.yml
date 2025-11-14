@@ -1,0 +1,65 @@
+trigger:
+- main
+
+pr:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+
+- task: AzureCLI@2
+  displayName: 'Configure Outerbounds'
+  inputs:
+    azureSubscription: 'dev-ob'  # Replace with your Azure service connection name
+    addSpnToEnvironment: true
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      # Check if yq is available
+      which yq || (echo "yq not found, installing..." && wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && chmod +x /usr/local/bin/yq)
+      
+      PROJECT_NAME=$(yq .project obproject.toml)
+      DEFAULT_CICD_USER="${PROJECT_NAME//_/-}-cicd"
+      PLATFORM=$(yq .platform obproject.toml)
+      CICD_USER=$(yq ".cicd_user // \"$DEFAULT_CICD_USER\"" obproject.toml)
+      PERIMETER="default"
+      echo "🏗️ Deployment target:"
+      echo "  Platform: $PLATFORM"
+      echo "  CI/CD User: $CICD_USER"
+      echo "  Perimeter: $PERIMETER"
+      python -m pip install -U pyyaml requests toml 'outerbounds[azure]' ob-project-utils
+      outerbounds service-principal-configure \
+        --name $CICD_USER \
+        --deployment-domain $PLATFORM \
+        --perimeter $PERIMETER \
+        --jwt-token $idToken
+
+- script: |
+    # Debug environment detection
+    echo "=== Debugging CI Environment ==="
+    echo "BUILD_SOURCEBRANCH: $(Build.SourceBranch)"
+    echo "SYSTEM_COLLECTIONURI: $(System.CollectionUri)"
+    echo "Git branch from rev-parse: $(git rev-parse --abbrev-ref HEAD)"
+    echo "Git status:"
+    git status
+    echo "=== Running deploy ==="
+    
+    obproject-deploy
+            
+  displayName: 'Deploy Project'
+  env:
+    # https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    PYTHONUNBUFFERED: 1
+    # Pass all Azure DevOps variables that the deploy script needs
+    BUILD_SOURCEBRANCH: $(Build.SourceBranch)
+    SYSTEM_PULLREQUEST_SOURCEBRANCH: $(System.PullRequest.SourceBranch)
+    SYSTEM_COLLECTIONURI: $(System.CollectionUri)
+    SYSTEM_TEAMPROJECT: $(System.TeamProject)
+    BUILD_REPOSITORY_NAME: $(Build.Repository.Name)
+    BUILD_REPOSITORY_ID: $(Build.Repository.ID)
+    BUILD_BUILDID: $(Build.BuildId)
+    SYSTEM_PULLREQUEST_PULLREQUESTID: $(System.PullRequest.PullRequestId)
