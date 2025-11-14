@@ -1,6 +1,8 @@
 {
-    "compute_pool": "obp-main",
-    "n_trials": 3,
+    "compute_pool": "obp-main-1-33",
+    "max_parallelism": 3,
+
+    "n_trials": 12,
     "trials_per_task": 1,
 
     "direction": "maximize",

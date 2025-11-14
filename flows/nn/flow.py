@@ -15,7 +15,7 @@ class NeuralNetHpoFlow(ProjectFlow):
         default="objective_fn.py",
         help="Relative path to the objective function file",
     )
-    n_trials = Parameter("n_trials", default=10, help="Total number of trials for HPO")
+    n_trials_override = Parameter("n_trials_override", default=None, help="Total number of trials for HPO")
     trials_per_task = Parameter(
         "trials_per_task", default=1, help="Number of trials per task"
     )
@@ -54,12 +54,9 @@ class NeuralNetHpoFlow(ProjectFlow):
         import optuna
         from utils import cache_mnist
 
-        num_full_batches = self.n_trials // self.trials_per_task
-        remaining_trials = self.n_trials % self.trials_per_task
-        self.batches = [self.trials_per_task] * num_full_batches
-        if remaining_trials > 0:
-            self.batches.append(remaining_trials)
-
+        self.n_trials = self.n_trials_override or self.config.get("n_trials", 10)
+        self.workers = list(range(min(self.n_trials, self.config.get("max_parallelism", 10))))
+        
         override_study_name = (
             None
             if self.override_study_name == "" or self.override_study_name == "null"
@@ -73,7 +70,8 @@ class NeuralNetHpoFlow(ProjectFlow):
         print(f"Study name: {self.study_name}")
 
         ### Cache Dataset
-        cache_mnist()
+        # cache_mnist()
+        # NOTE: Turned off for now as each worker downloads the small DS, see utils.py for details.
 
         ### Configure Study
         self.study_kwargs = dict(
@@ -90,7 +88,7 @@ class NeuralNetHpoFlow(ProjectFlow):
         else:
             self.study_kwargs["direction"] = diresult
         _ = optuna.create_study(**self.study_kwargs)
-        self.next(self.run_trial, foreach="batches")
+        self.next(self.run_trial, foreach="workers")
 
     @kubernetes(compute_pool=config.compute_pool)
     @pypi(
@@ -103,12 +101,25 @@ class NeuralNetHpoFlow(ProjectFlow):
         from utils import load_objective_function
 
         self.objective = load_objective_function(self.objective_function_file)
-        # Each task runs a batch of trials, may be just 1 for cleanest (trial, model, task) accounting.
-        # TODO: Refactor as conditionals/looping DAGs lands. Revisit this.
-        batch_size = self.input
+
+        # Each task runs exactly 1 trial for 1:1 task-trial mapping
         study = optuna.create_study(**self.study_kwargs)
-        study.optimize(self.objective, n_trials=batch_size)
-        self.trial_result = {"batch_size": batch_size, "completed": True}
+        study.optimize(self.objective, n_trials=1)
+        self.trial_result = {"completed": True}
+
+        # Query global state from Optuna DB to decide whether to continue
+        successful_count = sum(
+            1 for t in study.trials 
+            if t.state in (optuna.trial.TrialState.COMPLETE, 
+                        optuna.trial.TrialState.PRUNED)
+        )
+        self.continue_study = "yes" if successful_count < self.n_trials else "no"
+        self.next({"yes": self.run_trial, "no": self.post_trial}, condition="continue_study")
+
+    @kubernetes(compute_pool=config.compute_pool)
+    @pypi(python=config.environment.get("python"), packages=config.environment.get("packages"))
+    @step
+    def post_trial(self):
         self.next(self.join)
 
     @card(id="best_model")

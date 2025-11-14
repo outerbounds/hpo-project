@@ -80,6 +80,7 @@ def objective(trial):
 
         model.eval()
         correct = 0
+        total = 0
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(valid_loader):
                 # Limiting validation data.
@@ -90,13 +91,14 @@ def objective(trial):
                 # Get the index of the max log-probability.
                 pred = output.argmax(dim=1, keepdim=True)
                 correct += pred.eq(target.view_as(pred)).sum().item()
+                total += target.size(0)
 
-        accuracy = correct / min(len(valid_loader.dataset), n_valid_examples)
+        accuracy = correct / total
 
-        ### Not supported with multi-objective :(
+        ### Not supported with multi-objective.
         # trial.report(accuracy, epoch)
 
-        ### Not supported with multi-objective :(
+        ### Not supported with multi-objective.
         # Handle pruning based on the intermediate value.
         # if trial.should_prune():
         #     raise optuna.exceptions.TrialPruned()
