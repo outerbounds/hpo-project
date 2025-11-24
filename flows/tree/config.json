@@ -1,17 +1,9 @@
-{
-<<<<<<< HEAD
+{ 
     "compute_pool": "c5-2x-task",
     "max_parallelism": 3,
-
     "n_trials": 12,
-=======
-    "compute_pool": "obp-main",
-    "n_trials": 3,
->>>>>>> e568fcf (resolve readme)
     "trials_per_task": 1,
-
     "direction": "maximize",
-    
     "optuna_app_name": "hpo-dashboard",
     "environment_builder": "fast-bakery",
     "flow_file": "flow.py",

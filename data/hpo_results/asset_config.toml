@@ -1,0 +1,7 @@
+name = "HPO Results"
+id = "hpo_results"
+description = "Hyperparameter optimization study results and trial history"
+
+[properties]
+optimizer = "optuna"
+study_type = "tree_classifier"

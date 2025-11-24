@@ -64,6 +64,22 @@ class TreeModelHpoFlow(ProjectFlow):
     @step
     def start(self):
         import optuna
+        from sklearn.datasets import load_iris
+
+        # Load and register training data
+        data = load_iris()
+        self.X, self.y = data["data"], data["target"]
+        self.prj.register_data(
+            "iris_dataset",
+            "X",
+            annotations={
+                "n_samples": len(self.X),
+                "n_features": self.X.shape[1],
+                "n_classes": len(set(self.y)),
+            },
+            tags={"source": "sklearn", "dataset": "iris"},
+            description="Iris flower dataset for classification"
+        )
 
 <<<<<<< HEAD
         # self.batches = [self.trials_per_task] * (self.n_trials // self.trials_per_task)
@@ -163,13 +179,55 @@ class TreeModelHpoFlow(ProjectFlow):
     @step
     def join(self, inputs):
         from utils import load_study
+        from sklearn.tree import ExtraTreeClassifier
+        from sklearn.model_selection import cross_val_score
+        import numpy as np
 
         self.study_name = inputs[0].study_name
         study = load_study(self.study_name, self.optuna_app_name)
         self.results = study.trials_dataframe()
         self.best_params = study.best_params
+
+        # Train final model with best params
+        X = inputs[0].X
+        y = inputs[0].y
+        self.best_model = ExtraTreeClassifier(**self.best_params)
+        self.best_model.fit(X, y)
+        self.best_score = study.best_value
+
+        # Register HPO results as data asset
+        self.prj.register_data(
+            "hpo_results",
+            "results",
+            annotations={
+                "n_trials": len(self.results),
+                "best_score": float(self.best_score),
+                "study_name": self.study_name,
+            },
+            tags={"optimization": "optuna", "model_type": "tree"},
+            description="Hyperparameter optimization results"
+        )
+
+        # Register best model
+        self.prj.register_model(
+            "iris_classifier",
+            "best_model",
+            annotations={
+                "accuracy": float(self.best_score),
+                "model_type": "ExtraTreeClassifier",
+                "max_depth": int(self.best_params.get("max_depth", 0)),
+                "criterion": self.best_params.get("criterion", ""),
+                "n_trials": len(self.results),
+            },
+            tags={"framework": "sklearn", "optimizer": "optuna"},
+            description="Best iris classifier from HPO"
+        )
+
         current.card["best_model"].append(
             Markdown(f"### Best model parameters: {self.best_params}")
+        )
+        current.card["best_model"].append(
+            Markdown(f"### Best cross-validation score: {self.best_score:.4f}")
         )
         self.next(self.end)
 

@@ -1,0 +1,8 @@
+name = "Tree Classifier"
+id = "tree_classifier"
+description = "ExtraTreeClassifier optimized via hyperparameter tuning"
+
+[properties]
+model_type = "ExtraTreeClassifier"
+framework = "sklearn"
+task = "multi-class classification"

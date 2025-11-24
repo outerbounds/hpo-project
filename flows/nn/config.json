@@ -1,13 +1,8 @@
 {
-<<<<<<< HEAD
     "compute_pool": "c5-2x-task",
     "n_trials": 15,
     "max_parallelism": 3,
-=======
-    "compute_pool": "obp-main",
-    "n_trials": 15,
     "trials_per_task": 1,
->>>>>>> e568fcf (resolve readme)
 
     "directions": [
         "minimize",
@@ -24,8 +19,8 @@
         "packages": {
             "optuna": "4.5.0",
             "psycopg2-binary": "2.9.10",
-            "torch": "2.5.1",
-            "torchvision": "0.20.1",
+            "torch": "2.9.1",
+            "torchvision": "0.24.1",
             "pandas": "2.3.2",
             "scipy": "1.16.1"
         }
