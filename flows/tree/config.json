@@ -1,6 +1,6 @@
 { 
     "compute_pool": "c5-2x-task",
-    "max_parallelism": 3,
+    "max_parallelism": 4,
     "n_trials": 12,
     "trials_per_task": 1,
     "direction": "maximize",
