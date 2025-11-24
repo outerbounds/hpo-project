@@ -15,10 +15,10 @@ class TreeModelHpoFlow(ProjectFlow):
         default="objective_fn.py",
         help="Relative path to the objective function file",
     )
-    n_trials_override = Parameter("n_trials_override", default=None, help="Total number of trials for HPO")
-    trials_per_task = Parameter(
-        "trials_per_task", default=1, help="Number of trials per task"
-    )
+    n_trials_override = Parameter("n_trials_override", default="", help="Total number of trials for HPO")
+    # trials_per_task = Parameter(
+    #     "trials_per_task", default=1, help="Number of trials per task"
+    # )
     optuna_app_name = Parameter(
         "optuna_app_name", default="hpo-dashboard", help="Name of the Optuna app"
     )
@@ -53,11 +53,11 @@ class TreeModelHpoFlow(ProjectFlow):
         from sklearn.datasets import load_iris
 
         # Load and register training data
-        data = load_iris()
-        self.X, self.y = data["data"], data["target"]
+        self.data = load_iris()
+        self.X, self.y = self.data["data"], self.data["target"]
         self.prj.register_data(
             "iris_dataset",
-            "X",
+            "data",
             annotations={
                 "n_samples": len(self.X),
                 "n_features": self.X.shape[1],
@@ -68,7 +68,11 @@ class TreeModelHpoFlow(ProjectFlow):
         )
 
         # self.batches = [self.trials_per_task] * (self.n_trials // self.trials_per_task)
-        self.n_trials = self.n_trials_override or self.config.get("n_trials", 10)
+        # Handle Argo "null" string issue: if override is empty or "null", use config value
+        if self.n_trials_override and self.n_trials_override != "null":
+            self.n_trials = int(self.n_trials_override)
+        else:
+            self.n_trials = self.config.get("n_trials", 10)
         self.workers = list(range(min(self.n_trials, self.config.get("max_parallelism", 10))))
         override_study_name = (
             None
