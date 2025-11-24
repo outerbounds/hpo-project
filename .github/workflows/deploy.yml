@@ -36,7 +36,7 @@ jobs:
       run: |
         python3 -m pip install -U requests
         python3 -m pip install outerbounds pyyaml
-        python3 -m pip install -U ob-project-utils
+        python3 -m pip install -U ob-project-utils==0.2.4rc0
     - name: Configure Outerbounds
       run: |
         PROJECT_NAME=$(yq .project obproject.toml)
@@ -61,4 +61,8 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COMMENTS_URL: ${{ github.event.pull_request.comments_url }}
         PYTHONUNBUFFERED: 1
+<<<<<<< HEAD
       run: obproject-deploy
+=======
+      run: obproject-deploy
+>>>>>>> 54f0d5e (pin ob-project-utils==0.2.4rc0)
