@@ -61,8 +61,4 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COMMENTS_URL: ${{ github.event.pull_request.comments_url }}
         PYTHONUNBUFFERED: 1
-<<<<<<< HEAD
       run: obproject-deploy
-=======
-      run: obproject-deploy
->>>>>>> 54f0d5e (pin ob-project-utils==0.2.4rc0)
