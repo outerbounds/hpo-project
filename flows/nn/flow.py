@@ -4,7 +4,6 @@ from metaflow.cards import Markdown
 # FIXME(Eddie): This database util is generalizable, nothing Optuna-specific.
 from metaflow.plugins.optuna import get_db_url
 from obproject import ProjectFlow
-import os
 
 
 @trigger(event="nn_hpo")
@@ -26,7 +25,7 @@ class NeuralNetHpoFlow(ProjectFlow):
         "override_study_name", default="", help="Name of the Optuna study"
     )
     config = Config(
-        "config", default=os.path.join(os.path.dirname(__file__), "config.json")
+        "config", default="flows/nn/config.json", help="Path to the config file"
     )
 
     def resolve_direction(self):
