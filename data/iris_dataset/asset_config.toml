@@ -1,0 +1,8 @@
+name = "Iris Dataset"
+id = "iris_dataset"
+description = "Training data for tree classifier - Iris flower measurements"
+
+[properties]
+source = "sklearn.datasets.load_iris"
+features = "4"
+classes = "3"

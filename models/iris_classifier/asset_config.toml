@@ -1,0 +1,8 @@
+name = "Iris Classifier"
+id = "iris_classifier"
+description = "Classifier for iris species prediction, optimized via HPO"
+
+[properties]
+task = "multi-class classification"
+target = "iris species"
+classes = "setosa, versicolor, virginica"

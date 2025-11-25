@@ -8,7 +8,6 @@ PyTorch and FashionMNIST. We optimize the neural network architecture as well as
 configuration. As it is too time consuming to use the whole FashionMNIST dataset,
 we here use a small subset of it.
 """
-
 import optuna
 from optuna.trial import TrialState
 import torch

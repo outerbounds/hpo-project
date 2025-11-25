@@ -8,6 +8,9 @@ hello.py
 .python-version
 
 # project-specific
+<<<<<<< HEAD
 .ob_apps
+=======
+>>>>>>> e568fcf (resolve readme)
 flows/nn/__pycache__
 flows/tree/__pycache__

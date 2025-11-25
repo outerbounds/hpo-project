@@ -4,7 +4,6 @@ from metaflow.cards import Markdown
 # FIXME(Eddie): This database util is generalizable, nothing Optuna-specific.
 from metaflow.plugins.optuna import get_db_url
 from obproject import ProjectFlow
-import os
 
 
 @trigger(event="nn_hpo")
@@ -15,10 +14,10 @@ class NeuralNetHpoFlow(ProjectFlow):
         default="objective_fn.py",
         help="Relative path to the objective function file",
     )
-    n_trials_override = Parameter("n_trials_override", default=None, help="Total number of trials for HPO")
-    trials_per_task = Parameter(
-        "trials_per_task", default=1, help="Number of trials per task"
-    )
+    n_trials_override = Parameter("n_trials_override", default="", help="Total number of trials for HPO")
+    # trials_per_task = Parameter(
+    #     "trials_per_task", default=1, help="Number of trials per task"
+    # )
     optuna_app_name = Parameter(
         "optuna_app_name", default="hpo-dashboard", help="Name of the Optuna app"
     )
@@ -26,7 +25,7 @@ class NeuralNetHpoFlow(ProjectFlow):
         "override_study_name", default="", help="Name of the Optuna study"
     )
     config = Config(
-        "config", default=os.path.join(os.path.dirname(__file__), "config.json")
+        "config", default="config.json", help="Path to the config file"
     )
 
     def resolve_direction(self):
@@ -54,7 +53,27 @@ class NeuralNetHpoFlow(ProjectFlow):
         import optuna
         from utils import cache_mnist
 
-        self.n_trials = self.n_trials_override or self.config.get("n_trials", 10)
+        # Load and register training data
+        # Note: MNIST is downloaded in cache_mnist(), registering metadata here
+        self.prj.register_external_data(
+            "mnist_dataset",
+            blobs=[],  # MNIST downloaded from torchvision.datasets
+            kind="external",
+            annotations={
+                "source": "torchvision.datasets.MNIST",
+                "train_samples": "60000",
+                "test_samples": "10000",
+                "n_classes": "10",
+            },
+            tags={"source": "torchvision", "dataset": "mnist"},
+            description="MNIST handwritten digit dataset for neural network training"
+        )
+
+        # Handle Argo "null" string issue: if override is empty or "null", use config value
+        if self.n_trials_override and self.n_trials_override != "null":
+            self.n_trials = int(self.n_trials_override)
+        else:
+            self.n_trials = self.config.get("n_trials", 10)
         self.workers = list(range(min(self.n_trials, self.config.get("max_parallelism", 10))))
         
         override_study_name = (
@@ -142,6 +161,36 @@ class NeuralNetHpoFlow(ProjectFlow):
         current.card["best_model"].append(
             Markdown(f"### Best model parameters: {self.best_params}")
         )
+
+        # Register HPO results data asset
+        self.prj.register_data(
+            "nn_hpo_results",
+            "results",
+            annotations={
+                "n_trials": len(self.results),
+                "study_name": self.study_name,
+            },
+            tags={"optimizer": "optuna", "sampler": "gp"},
+            description="Neural network HPO trial results from Optuna"
+        )
+
+        # Register best model (multi-objective, so registering trial metadata)
+        # Note: For multi-objective, best_trials is a list of Pareto-optimal solutions
+        n_best = len(self.best_params) if isinstance(self.best_params, list) else 1
+        self.prj.register_external_model(
+            "nn_classifier",
+            blobs=[],  # Model weights would be saved separately
+            kind="external",
+            annotations={
+                "model_type": "PyTorch_Neural_Network",
+                "n_pareto_solutions": n_best,
+                "study_name": self.study_name,
+                "optimization": "multi_objective",
+            },
+            tags={"framework": "pytorch", "optimizer": "optuna"},
+            description="Best neural network classifier from multi-objective HPO"
+        )
+
         self.next(self.end)
 
     @pypi(
