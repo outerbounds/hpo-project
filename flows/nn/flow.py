@@ -25,7 +25,7 @@ class NeuralNetHpoFlow(ProjectFlow):
         "override_study_name", default="", help="Name of the Optuna study"
     )
     config = Config(
-        "config", default="flows/nn/config.json", help="Path to the config file"
+        "config", default="config.json", help="Path to the config file"
     )
 
     def resolve_direction(self):
