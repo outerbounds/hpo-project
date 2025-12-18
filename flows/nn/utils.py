@@ -91,7 +91,6 @@ def workflow_template_exists(flow_name, project_name, namespace=None):
     return template is not None
 
 
-<<<<<<< HEAD
 ### NOTE: Temporarily deprecate AWS-specific implementation in favor of simpler cloud-agnostic/dumb approach.
 # def cache_mnist(batch_size=128):
 #     """
@@ -165,83 +164,21 @@ def get_mnist(batch_size=128):
             download=True,  # Download if not cached
             transform=transforms.ToTensor()
         ),
-=======
-def cache_mnist(batch_size=128):
-    """
-    This function is used to cache the FashionMNIST dataset in the Outerbounds S3 data plane.
-    """
-    cache_key = os.path.join(DATATOOLS_S3ROOT, REMOTE_BUCKET_KEY)
-    with S3(s3root=cache_key) as s3:
-        cache_contents = s3.list_paths()
-        if not cache_contents:
-            print("Downloading FashionMNIST dataset...")
-            _ = torch.utils.data.DataLoader(
-                datasets.FashionMNIST(
-                    LOCAL_DIR,
-                    train=True,
-                    download=True,
-                    transform=transforms.ToTensor(),
-                ),
-                batch_size=batch_size,
-                shuffle=True,
-            )
-            _ = torch.utils.data.DataLoader(
-                datasets.FashionMNIST(
-                    LOCAL_DIR, train=False, transform=transforms.ToTensor()
-                ),
-                batch_size=batch_size,
-                shuffle=True,
-            )
-
-            data_dir = os.path.join(LOCAL_DIR, "FashionMNIST")
-            s3_key_paths_pairs = []
-            for root, _, files in os.walk(data_dir):
-                for file in files:
-                    s3_key_paths_pairs.append(
-                        (
-                            os.path.join(os.path.relpath(root, LOCAL_DIR), file),
-                            os.path.join(root, file),
-                        )
-                    )
-            s3.put_files(s3_key_paths_pairs, overwrite=True)
-
-        return cache_contents
-
-
-def get_mnist(batch_size=128):
-    # Create the full directory structure in one call
-    data_dir = os.path.join(LOCAL_DIR, "FashionMNIST", "raw")
-    os.makedirs(data_dir, exist_ok=True)
-
-    cache_key = os.path.join(DATATOOLS_S3ROOT, REMOTE_BUCKET_KEY)
-    with S3(s3root=cache_key) as s3:
-        for obj in s3.get_all():
-            os.rename(obj.path, os.path.join(LOCAL_DIR, obj.key))
-
-    # Return the data loaders as expected by the objective function
-    train_loader = torch.utils.data.DataLoader(
-        datasets.FashionMNIST(LOCAL_DIR, train=True, transform=transforms.ToTensor()),
->>>>>>> e568fcf (resolve readme)
         batch_size=batch_size,
         shuffle=True,
     )
     valid_loader = torch.utils.data.DataLoader(
-<<<<<<< HEAD
         datasets.FashionMNIST(
             LOCAL_DIR, 
             train=False, 
             download=True,  # Download if not cached
             transform=transforms.ToTensor()
         ),
-=======
-        datasets.FashionMNIST(LOCAL_DIR, train=False, transform=transforms.ToTensor()),
->>>>>>> e568fcf (resolve readme)
         batch_size=batch_size,
         shuffle=True,
     )
 
     return train_loader, valid_loader
-<<<<<<< HEAD
 
     # OLD S3 CACHING VERSION (AWS-only, doesn't work on Azure):
     # # Create the full directory structure in one call
@@ -266,5 +203,3 @@ def get_mnist(batch_size=128):
     # )
     #
     # return train_loader, valid_loader
-=======
->>>>>>> e568fcf (resolve readme)

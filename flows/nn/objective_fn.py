@@ -8,10 +8,6 @@ PyTorch and FashionMNIST. We optimize the neural network architecture as well as
 configuration. As it is too time consuming to use the whole FashionMNIST dataset,
 we here use a small subset of it.
 """
-<<<<<<< HEAD
-
-=======
->>>>>>> e568fcf (resolve readme)
 import optuna
 from optuna.trial import TrialState
 import torch
@@ -54,11 +50,7 @@ def define_model(trial):
 def objective(trial):
     import time
 
-<<<<<<< HEAD
     t0 = time.time()
-=======
-    t0 = time.time() 
->>>>>>> e568fcf (resolve readme)
 
     model = define_model(trial).to(DEVICE)
     optimizer_name = trial.suggest_categorical("optimizer", ["Adam", "RMSprop", "SGD"])
@@ -87,10 +79,7 @@ def objective(trial):
 
         model.eval()
         correct = 0
-<<<<<<< HEAD
         total = 0
-=======
->>>>>>> e568fcf (resolve readme)
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(valid_loader):
                 # Limiting validation data.
@@ -101,7 +90,6 @@ def objective(trial):
                 # Get the index of the max log-probability.
                 pred = output.argmax(dim=1, keepdim=True)
                 correct += pred.eq(target.view_as(pred)).sum().item()
-<<<<<<< HEAD
                 total += target.size(0)
 
         accuracy = correct / total
@@ -110,27 +98,11 @@ def objective(trial):
         # trial.report(accuracy, epoch)
 
         ### Not supported with multi-objective.
-=======
-
-        accuracy = correct / min(len(valid_loader.dataset), n_valid_examples)
-
-        ### Not supported with multi-objective :(
-        # trial.report(accuracy, epoch)
-
-        ### Not supported with multi-objective :(
->>>>>>> e568fcf (resolve readme)
         # Handle pruning based on the intermediate value.
         # if trial.should_prune():
         #     raise optuna.exceptions.TrialPruned()
 
-<<<<<<< HEAD
     return (time.time() - t0, accuracy)  # cost  # profit
-=======
-    return (
-        time.time() - t0, # cost
-        accuracy          # profit
-    )
->>>>>>> e568fcf (resolve readme)
 
 
 if __name__ == "__main__":
