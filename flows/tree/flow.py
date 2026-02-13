@@ -4,7 +4,6 @@ from metaflow.cards import Markdown
 # FIXME(Eddie): This database util is generalizable, nothing Optuna-specific.
 from metaflow.plugins.optuna import get_db_url
 from obproject import ProjectFlow
-import os
 
 
 @trigger(event="tree_model_hpo")
@@ -15,10 +14,10 @@ class TreeModelHpoFlow(ProjectFlow):
         default="objective_fn.py",
         help="Relative path to the objective function file",
     )
-    n_trials_override = Parameter("n_trials_override", default=None, help="Total number of trials for HPO")
-    trials_per_task = Parameter(
-        "trials_per_task", default=1, help="Number of trials per task"
-    )
+    n_trials_override = Parameter("n_trials_override", default="", help="Total number of trials for HPO")
+    # trials_per_task = Parameter(
+    #     "trials_per_task", default=1, help="Number of trials per task"
+    # )
     optuna_app_name = Parameter(
         "optuna_app_name", default="hpo-dashboard", help="Name of the Optuna app"
     )
@@ -26,7 +25,7 @@ class TreeModelHpoFlow(ProjectFlow):
         "override_study_name", default="", help="Name of the Optuna study"
     )
     config = Config(
-        "config", default=os.path.join(os.path.dirname(__file__), "config.json")
+        "config", default="config.json", help="Path to the config file"
     )
 
     def resolve_direction(self):
@@ -50,9 +49,29 @@ class TreeModelHpoFlow(ProjectFlow):
     @step
     def start(self):
         import optuna
+        from sklearn.datasets import load_iris
+
+        # Load and register training data
+        self.data = load_iris()
+        self.X, self.y = self.data["data"], self.data["target"]
+        self.prj.register_data(
+            "iris_dataset",
+            "data",
+            annotations={
+                "n_samples": len(self.X),
+                "n_features": self.X.shape[1],
+                "n_classes": len(set(self.y)),
+            },
+            tags={"source": "sklearn", "dataset": "iris"},
+            description="Iris flower dataset for classification"
+        )
 
         # self.batches = [self.trials_per_task] * (self.n_trials // self.trials_per_task)
-        self.n_trials = self.n_trials_override or self.config.get("n_trials", 10)
+        # Handle Argo "null" string issue: if override is empty or "null", use config value
+        if self.n_trials_override and self.n_trials_override != "null":
+            self.n_trials = int(self.n_trials_override)
+        else:
+            self.n_trials = self.config.get("n_trials", 10)
         self.workers = list(range(min(self.n_trials, self.config.get("max_parallelism", 10))))
         override_study_name = (
             None
@@ -124,13 +143,55 @@ class TreeModelHpoFlow(ProjectFlow):
     @step
     def join(self, inputs):
         from utils import load_study
+        from sklearn.tree import ExtraTreeClassifier
+        from sklearn.model_selection import cross_val_score
+        import numpy as np
 
         self.study_name = inputs[0].study_name
         study = load_study(self.study_name, self.optuna_app_name)
         self.results = study.trials_dataframe()
         self.best_params = study.best_params
+
+        # Train final model with best params
+        X = inputs[0].X
+        y = inputs[0].y
+        self.best_model = ExtraTreeClassifier(**self.best_params)
+        self.best_model.fit(X, y)
+        self.best_score = study.best_value
+
+        # Register HPO results as data asset
+        self.prj.register_data(
+            "hpo_results",
+            "results",
+            annotations={
+                "n_trials": len(self.results),
+                "best_score": float(self.best_score),
+                "study_name": self.study_name,
+            },
+            tags={"optimization": "optuna", "model_type": "tree"},
+            description="Hyperparameter optimization results"
+        )
+
+        # Register best model
+        self.prj.register_model(
+            "iris_classifier",
+            "best_model",
+            annotations={
+                "accuracy": float(self.best_score),
+                "model_type": "ExtraTreeClassifier",
+                "max_depth": int(self.best_params.get("max_depth", 0)),
+                "criterion": self.best_params.get("criterion", ""),
+                "n_trials": len(self.results),
+            },
+            tags={"framework": "sklearn", "optimizer": "optuna"},
+            description="Best iris classifier from HPO"
+        )
+
         current.card["best_model"].append(
             Markdown(f"### Best model parameters: {self.best_params}")
+        )
+        current.card["best_model"].append(
+            Markdown(f"### Best cross-validation score: {self.best_score:.4f}")
         )
         self.next(self.end)
 
